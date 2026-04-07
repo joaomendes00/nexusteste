@@ -16,14 +16,28 @@ Sistema de processamento e revisão de documentos com IA.
 docker compose up -d
 ```
 
-Isso inicia o PostgreSQL (porta 5432), Redis (porta 6379) e Adminer (porta 8080).
+Isso inicia o PostgreSQL (porta 5432), Redis (porta 6379), Adminer (porta 8080) e Ollama (porta 11434).
 
-### 2. Backend
+### 2. Setup com Ollama
+
+Após subir os containers, baixe o modelo de IA:
+
+```bash
+docker exec -it nexusteste-ollama-1 ollama pull llama3.2
+```
+
+Aguarde o download (~2GB). Para verificar se o modelo está disponível:
+
+```bash
+docker exec -it nexusteste-ollama-1 ollama list
+```
+
+### 3. Backend
 
 ```bash
 cd nexus/backend
 cp .env.example .env
-# Edite o .env com suas chaves reais
+# Edite o .env se necessário
 
 python -m venv .venv
 source .venv/bin/activate
@@ -34,7 +48,7 @@ uvicorn app.main:app --reload
 
 O backend estará disponível em `http://localhost:8000`.
 
-### 3. Frontend
+### 4. Frontend
 
 ```bash
 cd nexus/frontend
@@ -82,5 +96,6 @@ nexus/
 | Frontend  | http://localhost:5173    |
 | Backend   | http://localhost:8000    |
 | Adminer   | http://localhost:8080    |
+| Ollama    | http://localhost:11434   |
 | Postgres  | localhost:5432           |
 | Redis     | localhost:6379           |

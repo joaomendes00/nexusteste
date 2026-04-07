@@ -9,9 +9,8 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql+asyncpg://nexus:nexus@localhost:5432/nexus"
     SECRET_KEY: str = "change-me-in-production"
-    AZURE_DI_KEY: str = ""
-    AZURE_DI_ENDPOINT: str = ""
-    OPENAI_KEY: str = ""
+    OLLAMA_HOST: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3.2"
     REDIS_URL: str = "redis://localhost:6379/0"
 
 
