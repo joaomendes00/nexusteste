@@ -22,7 +22,7 @@ def parse_plans(old_text: str, new_text: str) -> dict:
         "de cada plano (ementa, carga horária, competências, etc).\n\n"
         f"PLANO ANTIGO:\n{old_text}\n\n"
         f"PLANO NOVO:\n{new_text}\n\n"
-        "Responda APENAS com o JSON válido, sem texto adicional."
+        "Responda APENAS com JSON válido, sem texto antes ou depois."
     )
     raw = _chat(prompt)
     try:
@@ -38,7 +38,7 @@ def generate_diff(old_text: str, new_text: str) -> dict:
         "Para cada diferença, inclua: seção, texto_antigo, texto_novo, tipo (adição/remoção/alteração).\n\n"
         f"TEXTO ANTIGO:\n{old_text}\n\n"
         f"TEXTO NOVO:\n{new_text}\n\n"
-        "Responda APENAS com o JSON válido, sem texto adicional."
+        "Responda APENAS com JSON válido, sem texto antes ou depois."
     )
     raw = _chat(prompt)
     try:
@@ -59,7 +59,7 @@ def generate_report(old_text: str, new_text: str, diff: dict) -> dict:
         f"PLANO ANTIGO:\n{old_text}\n\n"
         f"PLANO NOVO:\n{new_text}\n\n"
         f"DIFF:\n{diff_str}\n\n"
-        "Responda APENAS com o JSON válido, sem texto adicional."
+        "Responda APENAS com JSON válido, sem texto antes ou depois."
     )
     raw = _chat(prompt)
     try:

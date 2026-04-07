@@ -23,10 +23,10 @@ Isso inicia o PostgreSQL (porta 5432), Redis (porta 6379), Adminer (porta 8080) 
 Após subir os containers, baixe o modelo de IA:
 
 ```bash
-docker exec -it nexusteste-ollama-1 ollama pull llama3.2
+docker exec -it nexusteste-ollama-1 ollama pull qwen2.5:7b
 ```
 
-Aguarde o download (~2GB). Para verificar se o modelo está disponível:
+Aguarde o download (~4.7GB). Para verificar se o modelo está disponível:
 
 ```bash
 docker exec -it nexusteste-ollama-1 ollama list
