@@ -7,11 +7,10 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    DATABASE_URL: str = "postgresql+asyncpg://nexus:nexus@localhost:5432/nexus"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./nexus.db"
     SECRET_KEY: str = "change-me-in-production"
     OLLAMA_HOST: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "qwen2.5:7b"
-    REDIS_URL: str = "redis://localhost:6379/0"
 
 
 settings = Settings()

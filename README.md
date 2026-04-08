@@ -4,40 +4,31 @@ Sistema de processamento e revisão de documentos com IA.
 
 ## Pré-requisitos
 
-- Docker e Docker Compose
 - Python 3.12+
 - Node.js 20+
+- Ollama instalado (`curl -fsSL https://ollama.com/install.sh | sh`)
 
 ## Setup rápido
 
-### 1. Subir os serviços de infraestrutura
+### 1. Setup com Ollama
+
+Baixe o modelo de IA:
 
 ```bash
-docker compose up -d
-```
-
-Isso inicia o PostgreSQL (porta 5432), Redis (porta 6379), Adminer (porta 8080) e Ollama (porta 11434).
-
-### 2. Setup com Ollama
-
-Após subir os containers, baixe o modelo de IA:
-
-```bash
-docker exec -it nexusteste-ollama-1 ollama pull qwen2.5:7b
+ollama pull qwen2.5:7b
 ```
 
 Aguarde o download (~4.7GB). Para verificar se o modelo está disponível:
 
 ```bash
-docker exec -it nexusteste-ollama-1 ollama list
+ollama list
 ```
 
-### 3. Backend
+### 2. Backend
 
 ```bash
 cd nexus/backend
 cp .env.example .env
-# Edite o .env se necessário
 
 python -m venv .venv
 source .venv/bin/activate
@@ -46,9 +37,10 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+O banco SQLite (`nexus.db`) é criado automaticamente na primeira execução.
 O backend estará disponível em `http://localhost:8000`.
 
-### 4. Frontend
+### 3. Frontend
 
 ```bash
 cd nexus/frontend
@@ -66,7 +58,7 @@ nexus/
 │   ├── app/
 │   │   ├── main.py          # FastAPI app
 │   │   ├── config.py        # Configurações (pydantic-settings)
-│   │   ├── database.py      # SQLAlchemy async
+│   │   ├── database.py      # SQLAlchemy async (SQLite)
 │   │   ├── models/          # Modelos do banco
 │   │   ├── schemas/         # Schemas Pydantic
 │   │   ├── routers/         # Endpoints da API
@@ -85,7 +77,7 @@ nexus/
 │   ├── package.json
 │   ├── vite.config.js
 │   └── tailwind.config.js
-├── docker-compose.yml
+├── docker-compose.yml        # Opcional (Ollama via Docker)
 └── README.md
 ```
 
@@ -95,7 +87,4 @@ nexus/
 | --------- | ----------------------- |
 | Frontend  | http://localhost:5173    |
 | Backend   | http://localhost:8000    |
-| Adminer   | http://localhost:8080    |
 | Ollama    | http://localhost:11434   |
-| Postgres  | localhost:5432           |
-| Redis     | localhost:6379           |

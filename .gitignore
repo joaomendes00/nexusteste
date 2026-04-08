@@ -25,5 +25,5 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Docker
-pgdata/
+# Database
+*.db
