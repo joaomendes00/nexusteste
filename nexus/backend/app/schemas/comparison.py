@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from typing import Any
 
@@ -13,8 +12,8 @@ class ComparisonCreate(BaseModel):
 class ComparisonResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
-    user_id: uuid.UUID
+    id: str
+    user_id: str
     old_plan_filename: str
     new_plan_filename: str
     old_plan_text: str
@@ -31,8 +30,8 @@ class ReviewApproveRequest(BaseModel):
 class ComparisonResultResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
-    comparison_id: uuid.UUID
+    id: str
+    comparison_id: str
     report_markdown: str
     novelties_json: Any | None = None
     suggestions_json: Any | None = None

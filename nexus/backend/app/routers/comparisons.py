@@ -1,5 +1,3 @@
-import uuid
-
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,7 +57,7 @@ async def list_comparisons(
 
 @router.get("/{comparison_id}", response_model=ComparisonResponse)
 async def get_comparison(
-    comparison_id: uuid.UUID,
+    comparison_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -69,7 +67,7 @@ async def get_comparison(
 
 @router.post("/{comparison_id}/approve", response_model=ComparisonResultResponse)
 async def approve_comparison(
-    comparison_id: uuid.UUID,
+    comparison_id: str,
     payload: ReviewApproveRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -113,7 +111,7 @@ async def approve_comparison(
 
 @router.get("/{comparison_id}/result", response_model=ComparisonResultResponse)
 async def get_comparison_result(
-    comparison_id: uuid.UUID,
+    comparison_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -128,7 +126,7 @@ async def get_comparison_result(
 
 
 async def _get_user_comparison(
-    comparison_id: uuid.UUID, user_id: uuid.UUID, db: AsyncSession
+    comparison_id: str, user_id: str, db: AsyncSession
 ) -> Comparison:
     result = await db.execute(
         select(Comparison).where(Comparison.id == comparison_id, Comparison.user_id == user_id)

@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -25,7 +24,7 @@ class FICUpdate(BaseModel):
 class FICResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
+    id: str
     name: str
     description: str
     workload_hours: int | None
@@ -36,7 +35,7 @@ class FICResponse(BaseModel):
     original_filename: str
     created_at: datetime
     updated_at: datetime
-    created_by_id: uuid.UUID
+    created_by_id: str
 
 
 class FICListResponse(BaseModel):

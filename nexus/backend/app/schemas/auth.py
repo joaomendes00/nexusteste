@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr
@@ -21,13 +20,13 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    user_id: uuid.UUID | None = None
+    user_id: str | None = None
 
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
+    id: str
     email: str
     full_name: str
     role: str
