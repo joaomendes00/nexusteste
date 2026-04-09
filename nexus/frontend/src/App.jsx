@@ -1,29 +1,25 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import UploadPage from "./pages/UploadPage";
+import ReviewPage from "./pages/ReviewPage";
+import ResultPage from "./pages/ResultPage";
+import HistoryPage from "./pages/HistoryPage";
 
-function Home() {
-  return <h1 className="text-2xl font-bold p-8">Nexus - Home</h1>;
-}
-
-function Review() {
-  return <h1 className="text-2xl font-bold p-8">Nexus - Review</h1>;
-}
-
-function Result() {
-  return <h1 className="text-2xl font-bold p-8">Nexus - Resultado</h1>;
-}
-
-function History() {
-  return <h1 className="text-2xl font-bold p-8">Nexus - Histórico</h1>;
+function PrivateRoute({ children }) {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/" replace />;
 }
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/review" element={<Review />} />
-        <Route path="/result/:id" element={<Result />} />
-        <Route path="/history" element={<History />} />
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/upload" element={<PrivateRoute><UploadPage /></PrivateRoute>} />
+        <Route path="/review/:id" element={<PrivateRoute><ReviewPage /></PrivateRoute>} />
+        <Route path="/result/:id" element={<PrivateRoute><ResultPage /></PrivateRoute>} />
+        <Route path="/history" element={<PrivateRoute><HistoryPage /></PrivateRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
