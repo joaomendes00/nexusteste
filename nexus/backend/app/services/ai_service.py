@@ -1,17 +1,20 @@
 import json
 
-import ollama
+from groq import Groq
 
 from app.config import settings
 
+client = Groq(api_key=settings.GROQ_API_KEY)
+
 
 def _chat(prompt: str) -> str:
-    """Envia prompt ao Ollama e retorna a resposta."""
-    response = ollama.chat(
-        model=settings.OLLAMA_MODEL,
+    """Envia prompt ao Groq e retorna a resposta."""
+    response = client.chat.completions.create(
+        model=settings.GROQ_MODEL,
         messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
     )
-    return response["message"]["content"]
+    return response.choices[0].message.content
 
 
 def parse_plans(old_text: str, new_text: str) -> dict:
