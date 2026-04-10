@@ -74,10 +74,13 @@ async def approve_comparison(
 ):
     comparison = await _get_user_comparison(comparison_id, current_user.id, db)
 
-    if comparison.status != ComparisonStatus.pending_review:
+    if comparison.status not in (
+        ComparisonStatus.pending_review,
+        ComparisonStatus.processing,
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Comparação não está pendente de revisão (status: {comparison.status.value})",
+            detail=f"Comparação não pode ser aprovada neste status ({comparison.status.value})",
         )
 
     if not payload.approved:
