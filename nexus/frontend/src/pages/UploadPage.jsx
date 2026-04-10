@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, FileText, X, ArrowRight } from "lucide-react";
+import toast from "react-hot-toast";
+import AppHeader from "../components/AppHeader";
 import api from "../services/api";
 
 function DropZone({ label, file, onFile, onClear }) {
@@ -90,9 +92,12 @@ export default function UploadPage() {
       const res = await api.post("/comparisons/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      toast.success("Planos enviados com sucesso");
       navigate(`/review/${res.data.id}`);
     } catch (err) {
-      setError(err.response?.data?.detail || "Erro ao enviar arquivos");
+      const msg = err.response?.data?.detail || "Erro ao enviar arquivos";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -100,25 +105,7 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-brand-500">Nexus</h1>
-          <nav className="flex gap-4">
-            <button
-              onClick={() => navigate("/history")}
-              className="text-sm text-gray-600 hover:text-brand-500 font-medium transition"
-            >
-              Histórico
-            </button>
-            <button
-              onClick={() => { localStorage.removeItem("token"); navigate("/"); }}
-              className="text-sm text-gray-600 hover:text-red-500 font-medium transition"
-            >
-              Sair
-            </button>
-          </nav>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="max-w-5xl mx-auto px-6 py-10">
         <div className="text-center mb-10">

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
@@ -31,5 +32,17 @@ class UserResponse(BaseModel):
     full_name: str
     role: str
     is_active: bool
+    area: str | None = None
+    cargo: str | None = None
+    regiao: str | None = None
+    interesses: Any | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class UserProfileUpdate(BaseModel):
+    full_name: str | None = None
+    area: str | None = None
+    cargo: str | None = None
+    regiao: str | None = None
+    interesses: list[str] | None = None

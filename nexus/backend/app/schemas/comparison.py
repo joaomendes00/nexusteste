@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -19,6 +19,8 @@ class ComparisonResponse(BaseModel):
     old_plan_text: str
     new_plan_text: str
     status: str
+    is_definitive: bool = False
+    version_label: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -36,4 +38,20 @@ class ComparisonResultResponse(BaseModel):
     novelties_json: Any | None = None
     suggestions_json: Any | None = None
     diff_json: Any | None = None
+    feedback_json: Any | None = None
     created_at: datetime
+
+
+class FeedbackRequest(BaseModel):
+    suggestion_index: int
+    feedback: Literal["up", "down"]
+
+
+class MarkDefinitiveRequest(BaseModel):
+    version_label: str | None = None
+
+
+class ModerationDecisionRequest(BaseModel):
+    comparison_id: str
+    suggestion_index: int
+    decision: Literal["approve", "reject"]

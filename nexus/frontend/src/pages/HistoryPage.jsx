@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Eye, Clock, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import {
+  Loader2,
+  Eye,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  Lock,
+  ShieldCheck,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import AppHeader from "../components/AppHeader";
 import api from "../services/api";
 
 const STATUS = {
@@ -15,13 +26,21 @@ export default function HistoryPage() {
   const navigate = useNavigate();
   const [comparisons, setComparisons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [marking, setMarking] = useState(null);
+
+  const load = async () => {
+    try {
+      const res = await api.get("/comparisons/");
+      setComparisons(res.data);
+    } catch {
+      toast.error("Erro ao carregar histórico");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    api
-      .get("/comparisons/")
-      .then((res) => setComparisons(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    load();
   }, []);
 
   const handleClick = (c) => {
@@ -29,36 +48,33 @@ export default function HistoryPage() {
     else if (c.status === "pending_review") navigate(`/review/${c.id}`);
   };
 
+  const markDefinitive = async (c) => {
+    setMarking(c.id);
+    try {
+      await api.post(`/comparisons/${c.id}/mark-definitive`, {});
+      toast.success("Marcado como definitivo");
+      await load();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Erro ao marcar");
+    } finally {
+      setMarking(null);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+      <div className="min-h-screen bg-gray-50">
+        <AppHeader />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-brand-500">Nexus</h1>
-          <nav className="flex gap-4">
-            <button
-              onClick={() => navigate("/upload")}
-              className="text-sm text-gray-600 hover:text-brand-500 font-medium transition"
-            >
-              Nova comparação
-            </button>
-            <button
-              onClick={() => { localStorage.removeItem("token"); navigate("/"); }}
-              className="text-sm text-gray-600 hover:text-red-500 font-medium transition"
-            >
-              Sair
-            </button>
-          </nav>
-        </div>
-      </header>
-
+      <AppHeader />
       <main className="max-w-6xl mx-auto px-6 py-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6">
           Histórico de comparações
@@ -93,7 +109,7 @@ export default function HistoryPage() {
                     Data
                   </th>
                   <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Ação
+                    Ações
                   </th>
                 </tr>
               </thead>
@@ -103,19 +119,40 @@ export default function HistoryPage() {
                   const Icon = st.icon;
                   return (
                     <tr key={c.id} className="hover:bg-gray-50 transition">
-                      <td className="px-5 py-4 text-sm text-gray-800 max-w-[200px] truncate">
-                        {c.old_plan_filename}
+                      <td className="px-5 py-4 text-sm text-gray-800 max-w-[200px]">
+                        <div className="flex items-center gap-2">
+                          {c.is_definitive && (
+                            <Lock
+                              className="w-4 h-4 text-brand-500 flex-shrink-0"
+                              aria-label="Definitivo"
+                            />
+                          )}
+                          <span className="truncate">{c.old_plan_filename}</span>
+                        </div>
                       </td>
                       <td className="px-5 py-4 text-sm text-gray-800 max-w-[200px] truncate">
                         {c.new_plan_filename}
                       </td>
                       <td className="px-5 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${st.color}`}
-                        >
-                          <Icon className="w-3.5 h-3.5" />
-                          {st.label}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${st.color}`}
+                          >
+                            <Icon
+                              className={`w-3.5 h-3.5 ${
+                                c.status === "processing" ? "animate-spin" : ""
+                              }`}
+                            />
+                            {st.label}
+                          </span>
+                          {c.is_definitive && (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
+                              <ShieldCheck className="w-3 h-3" />
+                              Definitivo
+                              {c.version_label ? ` · ${c.version_label}` : ""}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-4 text-sm text-gray-500">
                         {new Date(c.created_at).toLocaleDateString("pt-BR", {
@@ -127,13 +164,29 @@ export default function HistoryPage() {
                         })}
                       </td>
                       <td className="px-5 py-4">
-                        <button
-                          onClick={() => handleClick(c)}
-                          className="flex items-center gap-1 text-sm text-brand-500 hover:text-brand-700 font-medium transition"
-                        >
-                          <Eye className="w-4 h-4" />
-                          Ver
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleClick(c)}
+                            className="flex items-center gap-1 text-sm text-brand-500 hover:text-brand-700 font-medium transition"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Ver
+                          </button>
+                          {c.status === "completed" && !c.is_definitive && (
+                            <button
+                              onClick={() => markDefinitive(c)}
+                              disabled={marking === c.id}
+                              className="flex items-center gap-1 text-sm text-gray-500 hover:text-brand-500 font-medium transition disabled:opacity-50"
+                            >
+                              {marking === c.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <ShieldCheck className="w-4 h-4" />
+                              )}
+                              Marcar definitivo
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
