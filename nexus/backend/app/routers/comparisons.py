@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -94,8 +96,29 @@ async def approve_comparison(
     comparison.status = ComparisonStatus.processing
     await db.commit()
 
-    diff = generate_diff(comparison.old_plan_text, comparison.new_plan_text)
-    report = generate_report(comparison.old_plan_text, comparison.new_plan_text, diff)
+    try:
+        diff = await asyncio.to_thread(
+            generate_diff, comparison.old_plan_text, comparison.new_plan_text
+        )
+        report = await asyncio.to_thread(
+            generate_report, comparison.old_plan_text, comparison.new_plan_text, diff
+        )
+    except Exception as exc:
+        comparison.status = ComparisonStatus.failed
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Falha na análise de IA: {exc}",
+        )
+
+    # Remove resultado anterior caso seja uma re-aprovação
+    existing = await db.execute(
+        select(ComparisonResult).where(ComparisonResult.comparison_id == comparison.id)
+    )
+    prev = existing.scalar_one_or_none()
+    if prev:
+        await db.delete(prev)
+        await db.flush()
 
     comp_result = ComparisonResult(
         comparison_id=comparison.id,
