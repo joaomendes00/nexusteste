@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Loader2, ArrowLeft, Sparkles, Lightbulb, GitCompare } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Sparkles,
+  Lightbulb,
+  GitCompare,
+} from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import api from "../services/api";
 
 function Section({ icon: Icon, title, children, color = "brand" }) {
   const colors = {
     brand: "bg-brand-50 border-brand-200 text-brand-700",
     green: "bg-emerald-50 border-emerald-200 text-emerald-700",
+    blue: "bg-sky-50 border-sky-200 text-sky-700",
     amber: "bg-amber-50 border-amber-200 text-amber-700",
   };
   return (
@@ -18,6 +26,60 @@ function Section({ icon: Icon, title, children, color = "brand" }) {
       <div className="p-5">{children}</div>
     </div>
   );
+}
+
+function asText(item) {
+  if (item == null) return "";
+  if (typeof item === "string") return item;
+  if (typeof item === "object") {
+    return (
+      item.text ||
+      item.description ||
+      item.titulo ||
+      item.title ||
+      JSON.stringify(item)
+    );
+  }
+  return String(item);
+}
+
+/**
+ * Tenta extrair o JSON do relatório caso `report_markdown` venha como string
+ * bruta (ex.: quando a IA responde com ```json ... ``` ou JSON puro).
+ */
+function parseReport(result) {
+  let reportMd = result.report_markdown || "";
+  let novelties = Array.isArray(result.novelties_json)
+    ? result.novelties_json
+    : [];
+  let suggestions = Array.isArray(result.suggestions_json)
+    ? result.suggestions_json
+    : [];
+
+  const trimmed = reportMd.trim();
+  const looksLikeJson =
+    trimmed.startsWith("{") || trimmed.startsWith("```");
+
+  if (looksLikeJson) {
+    const fence = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    const candidate = fence ? fence[1] : trimmed;
+    try {
+      const parsed = JSON.parse(candidate);
+      if (typeof parsed.report_markdown === "string") {
+        reportMd = parsed.report_markdown;
+      }
+      if (Array.isArray(parsed.novelties) && novelties.length === 0) {
+        novelties = parsed.novelties;
+      }
+      if (Array.isArray(parsed.suggestions) && suggestions.length === 0) {
+        suggestions = parsed.suggestions;
+      }
+    } catch {
+      // não era JSON válido — mantém o texto original
+    }
+  }
+
+  return { reportMd, novelties, suggestions };
 }
 
 export default function ResultPage() {
@@ -57,10 +119,11 @@ export default function ResultPage() {
     );
   }
 
-  const novelties = result.novelties_json || [];
-  const suggestions = result.suggestions_json || [];
+  const { reportMd, novelties, suggestions } = parseReport(result);
   const diff = result.diff_json;
-  const diffItems = Array.isArray(diff) ? diff : diff?.differences || diff?.changes || [];
+  const diffItems = Array.isArray(diff)
+    ? diff
+    : diff?.differences || diff?.changes || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -93,40 +156,46 @@ export default function ResultPage() {
         </button>
 
         <Section icon={Sparkles} title="Relatório da análise" color="brand">
-          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
-            {result.report_markdown}
+          <div className="prose prose-sm max-w-none text-gray-700 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-a:text-brand-500">
+            <ReactMarkdown>{reportMd}</ReactMarkdown>
           </div>
         </Section>
 
-        {Array.isArray(novelties) && novelties.length > 0 && (
-          <Section icon={Lightbulb} title="Novidades identificadas" color="green">
-            <ul className="space-y-2">
+        {novelties.length > 0 && (
+          <Section
+            icon={Lightbulb}
+            title="Novidades identificadas"
+            color="green"
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
               {novelties.map((item, i) => (
-                <li
+                <div
                   key={i}
-                  className="flex items-start gap-2 text-sm text-gray-700"
+                  className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-900 leading-relaxed"
                 >
-                  <span className="mt-1 w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                  {typeof item === "string" ? item : JSON.stringify(item)}
-                </li>
+                  {asText(item)}
+                </div>
               ))}
-            </ul>
+            </div>
           </Section>
         )}
 
-        {Array.isArray(suggestions) && suggestions.length > 0 && (
-          <Section icon={Lightbulb} title="Sugestões de melhoria" color="amber">
-            <ul className="space-y-2">
+        {suggestions.length > 0 && (
+          <Section
+            icon={Lightbulb}
+            title="Sugestões de melhoria"
+            color="blue"
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
               {suggestions.map((item, i) => (
-                <li
+                <div
                   key={i}
-                  className="flex items-start gap-2 text-sm text-gray-700"
+                  className="p-4 rounded-lg bg-sky-50 border border-sky-200 text-sm text-sky-900 leading-relaxed"
                 >
-                  <span className="mt-1 w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
-                  {typeof item === "string" ? item : JSON.stringify(item)}
-                </li>
+                  {asText(item)}
+                </div>
               ))}
-            </ul>
+            </div>
           </Section>
         )}
 
